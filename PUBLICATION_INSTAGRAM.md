@@ -6,7 +6,7 @@ Cette fiche couvre la mise en production du flux Instagram hébergé par Prépin
 
 1. Confirmer la branche et le commit à déployer : `[branche]` / `[SHA]`. Examiner le diff et lancer `npm run check`, `npm run test:instagram` et `python3 scripts/security_scan.py`.
 2. Dans Netlify, vérifier que la commande de build et le dossier publié proviennent de `netlify.toml` : `INSTAGRAM_SNAPSHOT_MODE=skip ./scripts/build.sh` et `dist`. Les images Instagram sont servies par les fonctions, pas copiées depuis le poste local.
-3. Dans **Site configuration → Environment variables**, créer ou vérifier `INSTAGRAM_ACCESS_TOKEN` avec le jeton longue durée du compte professionnel `@haras_de_prepinson`, pour les contextes **Production** et **Deploy Previews**. Sur un forfait permettant les portées personnalisées, choisir **Functions** ; sur le forfait gratuit, cette restriction n'est pas disponible. Garder le jeton dans Netlify, hors de GitHub, des documents partagés, des logs et du navigateur. Vérifier que l'autorisation Meta est encore active.
+3. Dans **Site configuration → Environment variables**, créer ou vérifier `INSTAGRAM_ACCESS_TOKEN` avec un jeton longue durée valide du compte professionnel `@haras_de_prepinson`, **uniquement en Production**. Choisir la portée **Functions** si l'interface de l'offre Free le permet ; sinon limiter au contexte Production et conserver l'approbation des déploiements non fiables. Le build utilise `INSTAGRAM_SNAPSHOT_MODE=skip` et n'a pas besoin du jeton. Ne pas donner ce secret aux Deploy Previews. Garder le jeton dans Netlify, hors de GitHub, des documents partagés, des logs et du navigateur local. Vérifier que l'autorisation Meta est encore active avant de déclarer la migration réussie.
 4. Désigner l'adresse technique qui recevra l'alerte : `[adresse technique]`. Préparer un moniteur HTTP gratuit pour `https://[domaine]/instagram-health.json`, mais l'activer après le premier flux sain.
 
 ## Publication et premier chargement
@@ -21,7 +21,7 @@ Cette fiche couvre la mise en production du flux Instagram hébergé par Prépin
 
 - Sur l'accueil, ordinateur et Android : avant d'approcher la section Instagram, aucune requête Instagram ne part ; après défilement, six publications apparaissent. Revenir vers la section après l'avoir dépassée et vérifier qu'elles restent visibles.
 - Vérifier que le navigateur ne demande aucun média à Meta/Instagram : les images viennent du domaine Prépinson. Le lien direct vers le profil Instagram reste visible avec et sans JavaScript.
-- Simuler si possible une réponse 503 du flux en environnement de test : le bouton « Réessayer » doit permettre de relancer le chargement ; le lien direct reste disponible. Vérifier les six langues.
+- Simuler si possible une réponse 503 du flux en environnement de test : le bouton « Réessayer » doit permettre de relancer le chargement ; le lien direct reste disponible. Vérifier les trois langues publiées (FR, EN, SV).
 - Sur une page autre que l'accueil, aucune requête de flux ne doit partir.
 - Contrôler les en-têtes de cache sur les vraies réponses Netlify, et pas seulement dans les tests locaux.
 
