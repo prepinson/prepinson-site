@@ -17,6 +17,7 @@ for (const lang of disabled) {
   assert.ok(!gateway.includes(`href="/${lang}/"`), `${lang}: hidden gateway link`);
   await assert.rejects(access(new URL(`../dist/${lang}/index.html`, import.meta.url)));
   assert.match(redirects, new RegExp(`/${lang}/ /en/ 302`));
+  assert.match(redirects, new RegExp(`/${lang}/horses/programmes/ /en/horses/programmes/ 302`));
 }
 const make = (headers = {}) => new Request('https://example.net/?ref=x', { headers });
 for (const [headers, destination] of [

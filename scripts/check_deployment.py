@@ -28,6 +28,17 @@ def page(item):
  if 'netlify.app' in BASE and not any(k.lower()=='x-robots-tag' and 'noindex' in v for k,v in h.items()):fail.append('preview not noindex')
  return {'path':path,'status':status,'errors':fail}
 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:checks=list(pool.map(page,[(l,r) for l in PUBLISHED_LANGUAGES for r in ROUTES]))
+# Disabled locales must be temporary redirects, with the original query retained.
+for lang in LANGS:
+ if lang in PUBLISHED_LANGUAGES:continue
+ for route in ROUTES:
+  suffix=route+'/' if route else ''
+  path=f'/{lang}/{suffix}?publication_probe=1'
+  target=f'/en/{suffix}?publication_probe=1'
+  status,h,_=get(path)
+  location=next((v for k,v in h.items() if k.lower()=='location'),'')
+  fail=[] if status==302 and location in (target,BASE+target) else [f'expected 302 to {target}; got {status} {location}']
+  checks.append({'path':path,'status':status,'location':location,'errors':fail})
 for old,new,expected in LEGACY_ROUTES:
  status,h,b=get(old);location=next((v for k,v in h.items() if k.lower()=='location'),'')
  fail=[]
