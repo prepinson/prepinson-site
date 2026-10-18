@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from src.site_data import FACILITY_FACTS, HOUSE_FACTS, LANGS, LANGUAGE_NAMES, ROUTES, TEXT, text  # noqa: E402
+from src.language_config import PUBLISHED_LANGUAGES, FALLBACK_LANGUAGE, validate  # noqa: E402
+validate(LANGS)
 from src.client_content import HORSE_DISCIPLINES, HORSE_STORIES, PEDIGREES
 from src.release_content import SALES_REFERENCES
 from src.navigation import menu, breadcrumbs, crumbs
@@ -37,8 +39,9 @@ except ImportError:
 
 
 OUT = ROOT / "dist"
-DOMAIN = (os.environ.get("SITE_URL") or os.environ.get("URL") or "https://prepinson.netlify.app").rstrip("/")
+DOMAIN = (os.environ.get("SITE_URL") or os.environ.get("URL") or "https://www.prepinson.com").rstrip("/")
 PREVIEW_MODE = os.environ.get("PREVIEW_MODE") == "true"
+PRE_LAUNCH_MODE = os.environ.get("PRE_LAUNCH_MODE") == "true"
 ASSET_DOMAIN = os.environ.get("DEPLOY_PRIME_URL", DOMAIN).rstrip("/") if PREVIEW_MODE else DOMAIN
 IG_HARAS = "https://www.instagram.com/haras_de_prepinson/"
 IG_HOUSE = "https://www.instagram.com/prepinson_houses/"
@@ -154,7 +157,7 @@ def language_switch(lang, route):
     options = "".join(
         f'<a href="{url(code, route)}" lang="{code}" hreflang="{code}" data-language="{code}"' +
         (' aria-current="true"' if code == lang else "") + f'><span>{code.upper()}</span>{LANGUAGE_NAMES[code]}</a>'
-        for code in LANGS
+        for code in PUBLISHED_LANGUAGES
     )
     return f'<details class="language-switch"><summary aria-label="{escape(tx("language", lang))}: {escape(LANGUAGE_NAMES[lang])}"><span>{lang.upper()}</span>{icon("chevron-down")}</summary><nav aria-label="{escape(tx("language", lang))}" class="language-options">{options}</nav></details>'
 
@@ -236,7 +239,7 @@ def gallery(items, lang):
 def facilities(lang):
     gallery_items = (("prepinson-indoor-riding-arena.webp", ui("alt_indoor", lang)), ("prepinson-outdoor-jumping-arena.webp", ui("alt_training", lang)), ("prepinson-outdoor-arena.webp", ui("alt_outdoor", lang)), ("prepinson-horses-green-paddocks.webp", ui("alt_paddocks", lang)), ("prepinson-rider-saddle-detail.webp", ui("alt_saddle", lang)), ("prepinson-stables-flowers.webp", ui("alt_boarding", lang)))
     items = "".join(f'<li>{tx(key, lang)}</li>' for key in ("facility_equipment", "facility_club", "facility_breeding", "facility_trails"))
-    return inner_hero(lang, tx("nav_facilities", lang), tx("facilities_hero", lang), tx("facilities_intro", lang), "facilities") + f'<section id="discover" class="facilities-detail container"><div class="section-head"><div><p class="eyebrow">{tx("stats_title", lang)}</p><h2>{ui("facilities_detail_title", lang)}</h2></div></div>{stat_strip(lang, light=True)}<div class="facilities-copy"><ul class="large-list">{items}</ul><div><p>Ortho 24<br>6983 La Roche-en-Ardenne<br>{ui("country", lang)}</p><p>{ui("transport_access", lang)}</p>{editorial_link("#contact", tx("nav_contact", lang))}{editorial_link(MAP_HARAS, tx("footer_maps_haras", lang), target="_blank", rel="noopener noreferrer")}</div></div>{gallery(gallery_items, lang)}</section>'
+    return inner_hero(lang, tx("nav_facilities", lang), tx("facilities_hero", lang), tx("facilities_intro", lang), "facilities") + f'<section id="discover" class="facilities-detail container"><div class="section-head"><div><p class="eyebrow">{tx("stats_title", lang)}</p><h2>{ui("facilities_detail_title", lang)}</h2></div></div>{stat_strip(lang, light=True)}<div class="facilities-copy"><ul class="large-list">{items}</ul><div><p>Ortho 24<br>6983 La Roche-en-Ardenne<br>{ui("country", lang)}</p>{editorial_link("#contact", tx("nav_contact", lang))}{editorial_link(MAP_HARAS, tx("footer_maps_haras", lang), target="_blank", rel="noopener noreferrer")}</div></div>{gallery(gallery_items, lang)}</section>'
 
 
 def sales(lang):
@@ -354,6 +357,9 @@ def partners(lang):
         f'<span class="partner-caption"><strong>{name}</strong><span>{ui("official_link", lang)} {icon("arrow-up-right")}</span></span></a>'
         for name, mark, site, theme, width, height in marks
     )
+    cards += (f'<a class="partner-card partner-sowatt" href="https://sowatt.bike/fr" target="_blank" rel="noopener noreferrer" aria-label="Sowatt · {ui("official_link", lang)}">'
+              f'<span class="partner-logo partner-wordmark">Sowatt</span>'
+              f'<span class="partner-caption"><strong>Sowatt</strong><span>{ui("official_link", lang)} {icon("arrow-up-right")}</span></span></a>')
     return f'<section class="partners-page container" id="content"><div class="partners-heading"><p class="eyebrow">PREPINSON</p><h1>{tx("nav_partners", lang)}</h1><p>{tx("partners_intro", lang)}</p></div><div class="partners-grid">{cards}</div></section>'
 
 
@@ -416,7 +422,7 @@ def schema(lang, route, title, description):
 
 def render(lang, route):
     title, description = tx(META[route][0], lang), tx(META[route][1], lang); canonical = DOMAIN + url(lang, route)
-    alternates = "".join(f'<link rel="alternate" hreflang="{code}" href="{DOMAIN + url(code, route)}">' for code in LANGS); xdefault = DOMAIN + ("/" if not route else url("en", route))
+    alternates = "".join(f'<link rel="alternate" hreflang="{code}" href="{DOMAIN + url(code, route)}">' for code in PUBLISHED_LANGUAGES); xdefault = DOMAIN + ("/" if not route else url("en", route))
     content = house(lang, route.rsplit("/", 1)[1]) if route.startswith("houses/") else BUILDERS[route](lang)
     solid = route in {"legal", "privacy", "team", "contact", "horses/boarding", "partners"}
     content = breadcrumbs(lang,route) + content if solid else content.replace('</section>', '</section>' + breadcrumbs(lang,route), 1)
@@ -429,9 +435,9 @@ def render(lang, route):
 
 
 def gateway():
-    links = "".join(f'<a href="/{code}/" lang="{code}" hreflang="{code}">{name}</a>' for code, name in LANGUAGE_NAMES.items())
-    greetings = "".join(f'<span lang="{code}" style="--step:{i}"><span>{welcome}</span> <em>Prepinson.</em></span>' for i, (code, welcome) in enumerate((('en', 'Welcome to'), ('fr', 'Bienvenue à'), ('nl', 'Welkom bij'), ('de', 'Willkommen bei'), ('sv', 'Välkommen till'), ('lb', 'Wëllkomm zu'))))
-    alternates = "".join(f'<link rel="alternate" hreflang="{code}" href="{DOMAIN}/{code}/">' for code in LANGS)
+    links = "".join(f'<a href="/{code}/" lang="{code}" hreflang="{code}">{name}</a>' for code in PUBLISHED_LANGUAGES for name in (LANGUAGE_NAMES[code],))
+    greetings = "".join(f'<span lang="{code}" style="--step:{i}"><span>{welcome}</span> <em>Prepinson.</em></span>' for i, (code, welcome) in enumerate((item for item in (('en', 'Welcome to'), ('fr', 'Bienvenue à'), ('nl', 'Welkom bij'), ('de', 'Willkommen bei'), ('sv', 'Välkommen till'), ('lb', 'Wëllkomm zu')) if item[0] in PUBLISHED_LANGUAGES)))
+    alternates = "".join(f'<link rel="alternate" hreflang="{code}" href="{DOMAIN}/{code}/">' for code in PUBLISHED_LANGUAGES)
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prepinson | Horse breeding and holiday homes in Belgium</title><meta name="description" content="Discover Haras de Prepinson, its horses and holiday homes in the Belgian Ardennes. Choose your language to continue."><link rel="canonical" href="{DOMAIN}/">{alternates}<link rel="alternate" hreflang="x-default" href="{DOMAIN}/"><link rel="preload" href="/assets/fonts/cormorant-garamond-regular.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/dm-sans-regular.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/styles.css?v={ASSET_VERSION}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"></head><body class="gateway"><main><div class="gateway-visual">{responsive_image("hero-horses", "Horses and foals in the fields at Haras de Prepinson", cls="gateway-photo", hero=True)}</div><section class="gateway-panel"><a class="gateway-brand" href="/en/"><img src="/assets/logo.png?v={ASSET_VERSION}" width="260" height="260" alt=""><span>PREPINSON<small>HARAS DE PREPINSON</small></span></a><p class="eyebrow">ORTHO · BELGIAN ARDENNES</p><h1><span class="visually-hidden">Welcome to Prepinson.</span><span class="gateway-greetings" aria-hidden="true">{greetings}</span></h1><p>Choose your language to continue.</p><nav aria-label="Language">{links}</nav></section></main></body></html>'''
 
 
@@ -445,6 +451,20 @@ def confirmation_page(lang, kind):
     return f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Prepinson</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/cormorant-garamond-regular.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/dm-sans-regular.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/styles.css?v={ASSET_VERSION}"></head><body{preview_class}>{header(lang, kind + "/thanks", True)}<main id="main">{content}</main><script src="/app.js?v={ASSET_VERSION}" defer></script></body></html>'
 
 
+def disabled_locale_redirects():
+    # Only known routes have English equivalents; all others fall through to 404.
+    rules = []
+    for code in LANGS:
+        if code in PUBLISHED_LANGUAGES:
+            continue
+        for route in ROUTES:
+            path = f"/{code}/" + (route + "/" if route else "")
+            rules.append(f"{path} {url(FALLBACK_LANGUAGE, route)} 302\n")
+        for kind in ("contact", "newsletter"):
+            rules.append(f"/{code}/{kind}/thanks/ {url(FALLBACK_LANGUAGE, kind + '/thanks')} 302\n")
+    return "".join(rules)
+
+
 def build():
     OUT.mkdir(exist_ok=True)
     if (ROOT / "src/styles.css").exists():
@@ -452,7 +472,7 @@ def build():
         styles = "\n".join((ROOT / name).read_text(encoding="utf-8") for name in ("src/styles.css", "src/navigation-refined.css", "src/designs/refinement.css", "src/designs/equilibre.css"))
         (OUT / "styles.css").write_text(fonts + "\n" + styles, encoding="utf-8")
     if (ROOT / "src/app.js").exists():
-        app = (ROOT / "src/app.js").read_text(encoding="utf-8")
+        app = (ROOT / "src/app.js").read_text(encoding="utf-8").replace("__PUBLISHED_LANGUAGES__", json.dumps(PUBLISHED_LANGUAGES))
         finishing = (ROOT / "src/designs/refinement.js").read_text(encoding="utf-8").replace("__ASSET_VERSION__", ASSET_VERSION)
         (OUT / "app.js").write_text(app + "\n" + finishing, encoding="utf-8")
     nav_illustrations = OUT / "assets" / "nav-illustrations"
@@ -465,27 +485,32 @@ def build():
     for child in list(OUT.iterdir()):
         if child.name in {"assets", "styles.css", "app.js", "favicon.svg", "icons.svg", "instagram-feed.json"}: continue
         shutil.rmtree(child) if child.is_dir() else child.unlink()
+    for lang in LANGS:
+        if lang not in PUBLISHED_LANGUAGES and (OUT / lang).exists():
+            shutil.rmtree(OUT / lang)
+    edge_template = (ROOT / "netlify/edge-functions/language-redirect.template.js").read_text(encoding="utf-8")
+    (ROOT / "netlify/edge-functions/language-redirect.js").write_text(edge_template.replace("__PUBLISHED_LANGUAGES__", json.dumps(PUBLISHED_LANGUAGES)).replace("__FALLBACK_LANGUAGE__", FALLBACK_LANGUAGE), encoding="utf-8")
     (OUT / "index.html").write_text(gateway(), encoding="utf-8")
     (OUT / "404.html").write_text(not_found(), encoding="utf-8")
-    for lang in LANGS:
+    for lang in PUBLISHED_LANGUAGES:
         for route in ROUTES:
             target = OUT / lang / route / "index.html" if route else OUT / lang / "index.html"; target.parent.mkdir(parents=True, exist_ok=True); target.write_text(render(lang, route), encoding="utf-8")
         for kind in ("contact", "newsletter"):
             target = OUT / lang / kind / "thanks" / "index.html"; target.parent.mkdir(parents=True, exist_ok=True); target.write_text(confirmation_page(lang, kind), encoding="utf-8")
     entries = []
     for route in ROUTES:
-        for lang in LANGS:
-            loc = DOMAIN + url(lang, route); alternates = "".join(f'<xhtml:link rel="alternate" hreflang="{code}" href="{DOMAIN + url(code, route)}"/>' for code in LANGS); xdefault = DOMAIN + ("/" if not route else url("en", route)); entries.append(f'<url><loc>{loc}</loc>{alternates}<xhtml:link rel="alternate" hreflang="x-default" href="{xdefault}"/></url>')
-    gateway_alternates = "".join(f'<xhtml:link rel="alternate" hreflang="{code}" href="{DOMAIN}/{code}/"/>' for code in LANGS)
+        for lang in PUBLISHED_LANGUAGES:
+            loc = DOMAIN + url(lang, route); alternates = "".join(f'<xhtml:link rel="alternate" hreflang="{code}" href="{DOMAIN + url(code, route)}"/>' for code in PUBLISHED_LANGUAGES); xdefault = DOMAIN + ("/" if not route else url("en", route)); entries.append(f'<url><loc>{loc}</loc>{alternates}<xhtml:link rel="alternate" hreflang="x-default" href="{xdefault}"/></url>')
+    gateway_alternates = "".join(f'<xhtml:link rel="alternate" hreflang="{code}" href="{DOMAIN}/{code}/"/>' for code in PUBLISHED_LANGUAGES)
     entries.insert(0, f'<url><loc>{DOMAIN}/</loc>{gateway_alternates}<xhtml:link rel="alternate" hreflang="x-default" href="{DOMAIN}/"/></url>')
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' + ''.join(entries) + '</urlset>', encoding="utf-8")
     (OUT / "robots.txt").write_text(f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n', encoding="utf-8")
-    (OUT / "_redirects").write_text(render_redirects() + '/instagram-feed.json /.netlify/functions/instagram-feed 200!\n/instagram-image /.netlify/functions/instagram-image 200!\n/instagram-health.json /.netlify/functions/instagram-health 200!\n/horses /en/horses/ 301\n/horses/* /en/horses/:splat 301\n/houses /en/houses/ 301\n/houses/* /en/houses/:splat 301\n/* /404.html 404\n', encoding="utf-8")
-    preview_header = "  X-Robots-Tag: noindex, nofollow, noarchive\n" if PREVIEW_MODE else ""
+    (OUT / "_redirects").write_text(render_redirects() + disabled_locale_redirects() + '/instagram-feed.json /.netlify/functions/instagram-feed 200!\n/instagram-image /.netlify/functions/instagram-image 200!\n/instagram-health.json /.netlify/functions/instagram-health 200!\n/horses /en/horses/ 301\n/horses/* /en/horses/:splat 301\n/houses /en/houses/ 301\n/houses/* /en/houses/:splat 301\n/* /404.html 404\n', encoding="utf-8")
+    preview_header = "  X-Robots-Tag: noindex, nofollow, noarchive\n" if PREVIEW_MODE or PRE_LAUNCH_MODE else ""
     (OUT / "_headers").write_text("/*\n" + preview_header + "  X-Content-Type-Options: nosniff\n", encoding="utf-8")
     from work.instagram import build as build_instagram
     build_instagram()
-    print(f"Generated {len(LANGS) * len(ROUTES)} public pages, 12 confirmations, language gateway, and 404 page")
+    print(f"Generated {len(PUBLISHED_LANGUAGES) * len(ROUTES)} public pages, {2 * len(PUBLISHED_LANGUAGES)} confirmations, language gateway, and 404 page")
 
 
 if __name__ == "__main__": build()

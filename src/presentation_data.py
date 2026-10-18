@@ -204,7 +204,7 @@ V1_COPY = {'en': {'home_hero': 'A life dedicated<br>to <em>horses.</em>',
         'home_tagline': 'Breeding, young horse training and boarding<br>in the Belgian Ardennes.',
         'home_intro_title': 'Horses first.<br><em>Always.</em>',
         'home_intro': 'We breed and train young horses in Ortho, in the Belgian Ardennes. Our programmes cover foal handling, preparation '
-                      'for backing, early ridden work and show jumping.',
+                      'for backing, early ridden work and training.',
         'home_intro_secondary': 'Boarding and daily care take place in quiet surroundings, with work in the arenas and in the forest.',
         'home_intro_link': 'Discover our activities',
         'expertise_title': 'Our work<br><em>with horses.</em>',
@@ -240,7 +240,7 @@ V1_COPY = {'en': {'home_hero': 'A life dedicated<br>to <em>horses.</em>',
         'home_tagline': 'Élevage, formation des jeunes chevaux et pension<br>dans les Ardennes belges.',
         'home_intro_title': 'Les chevaux d’abord.<br><em>Toujours.</em>',
         'home_intro': 'À Ortho, dans les Ardennes belges, Prepinson réunit élevage, pension et formation de jeunes chevaux. Nos programmes '
-                      'accompagnent leurs premiers apprentissages, le débourrage et la préparation au saut d’obstacles.',
+                      'accompagnent leurs premiers apprentissages, le débourrage et l’entraînement.',
         'home_intro_secondary': 'Le travail se déroule dans les pistes et en forêt, dans le respect du rythme de chaque cheval.',
         'home_intro_link': 'Découvrir nos activités',
         'expertise_title': 'Notre travail<br><em>avec les chevaux.</em>',
@@ -276,7 +276,7 @@ V1_COPY = {'en': {'home_hero': 'A life dedicated<br>to <em>horses.</em>',
         'home_tagline': 'Fokkerij, opleiding van jonge paarden en pension<br>in de Belgische Ardennen.',
         'home_intro_title': 'Paarden eerst.<br><em>Altijd.</em>',
         'home_intro': 'In Ortho, in de Belgische Ardennen, fokken en trainen we jonge paarden. Onze programma’s omvatten veulenbegeleiding, '
-                      'voorbereiding op het zadelmak maken, de eerste oefeningen onder het zadel en springtraining.',
+                      'voorbereiding op het zadelmak maken, de eerste oefeningen onder het zadel en training.',
         'home_intro_secondary': 'Pension en dagelijkse verzorging vinden plaats in een rustige omgeving, met werk in de pistes en in het bos.',
         'home_intro_link': 'Ontdek onze activiteiten',
         'expertise_title': 'Ons werk<br><em>met paarden.</em>',
@@ -312,7 +312,7 @@ V1_COPY = {'en': {'home_hero': 'A life dedicated<br>to <em>horses.</em>',
         'home_tagline': 'Zucht, Jungpferdeausbildung und Pension<br>in den belgischen Ardennen.',
         'home_intro_title': 'Pferde zuerst.<br><em>Immer.</em>',
         'home_intro': 'In Ortho in den belgischen Ardennen züchten und arbeiten wir mit jungen Pferden. Unsere Programme umfassen '
-                      'Fohlenhandling, die Vorbereitung auf das Anreiten, die erste Arbeit unter dem Sattel und Springtraining.',
+                      'Fohlenhandling, die Vorbereitung auf das Anreiten, die erste Arbeit unter dem Sattel und Training.',
         'home_intro_secondary': 'Pension und tägliche Betreuung finden in ruhiger Umgebung statt; gearbeitet wird auf den Plätzen und im Wald.',
         'home_intro_link': 'Unsere Angebote entdecken',
         'expertise_title': 'Junge Pferde<br><em>ausbilden.</em>',
@@ -348,7 +348,7 @@ V1_COPY = {'en': {'home_hero': 'A life dedicated<br>to <em>horses.</em>',
         'home_tagline': 'Avel, unghästutbildning och uppstallning<br>i belgiska Ardennerna.',
         'home_intro_title': 'Hästarna först.<br><em>Alltid.</em>',
         'home_intro': 'I Ortho i belgiska Ardennerna föder vi upp och utbildar unghästar. Våra program omfattar fölhantering, förberedelse '
-                      'för inridning, den första ridningen och hoppträning.',
+                      'för inridning, den första ridningen och träning.',
         'home_intro_secondary': 'Uppstallning och daglig omsorg sker i lugna omgivningar, med arbete på banorna och i skogen.',
         'home_intro_link': 'Upptäck vår verksamhet',
         'expertise_title': 'Vårt arbete<br><em>med hästarna.</em>',
@@ -384,7 +384,7 @@ V1_COPY = {'en': {'home_hero': 'A life dedicated<br>to <em>horses.</em>',
         'home_tagline': 'Zuucht, Ausbildung vu jonke Päerd a Pensioun<br>an de belschen Ardennen.',
         'home_intro_title': 'D’Päerd fir d’éischt.<br><em>Ëmmer.</em>',
         'home_intro': "Zu Ortho an de belschen Ardenne ziichten an trainéiere mir jonk Päerd. Eis Programmer ëmfaassen den Ëmgang mam "
-                      "Fëllen, d’Virbereedung op d’Ureiden, déi éischt Aarbecht ënner dem Suedel an d'Sprangtraining.",
+                      "Fëllen, d’Virbereedung op d’Ureiden, déi éischt Aarbecht ënner dem Suedel an den Training.",
         'home_intro_secondary': 'D’Pensioun an déi deeglech Betreiung fanne roueg statt, mat Aarbecht op de Pisten an am Bësch.',
         'home_intro_link': 'Eis Aktivitéiten entdecken',
         'expertise_title': 'Eis Aarbecht<br><em>mat de Päerd.</em>',
@@ -663,13 +663,6 @@ UI.update({'alt_indoor': {'en': 'Interior of the indoor riding arena, with roof 
                 'sv': 'Detalj av en ryttare i sadeln på en häst',
                 'lb': 'Detail vun engem Reider am Suedel op engem Päerd'}})
 
-UI["transport_access"] = {'de': 'Kontaktieren Sie das Team vor Ihrer Anreise mit einem Pferd, um die Zufahrt und den Transport abzustimmen.',
- 'en': 'Before arriving with a horse, contact the team to arrange access and coordinate with your transporter.',
- 'fr': 'Avant votre arrivée avec un cheval, contactez l’équipe pour organiser l’accès et vous coordonner avec votre '
-       'transporteur.',
- 'lb': 'Kontaktéiert d’Ekipp virun Ärer Arrivée mat engem Päerd, fir den Zougang an den Transport ofzeschwätzen.',
- 'nl': 'Neem vóór aankomst met een paard contact op met het team om de toegang en het transport af te stemmen.',
- 'sv': 'Kontakta teamet innan du kommer med en häst för att planera tillträde och samordna med din transportör.'}
 
 
 # Final client-approved content and original photographs (V6).

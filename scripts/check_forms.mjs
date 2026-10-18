@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_URL = (process.env.SITE_URL || 'http://127.0.0.1:3008').replace(/\/$/, '');
-const LANGUAGES = ['en', 'fr', 'nl', 'de', 'sv', 'lb'];
+const LANGUAGES = ['fr', 'en', 'sv'];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -229,7 +229,7 @@ async function checkServerError(browser) {
   });
   const page = await context.newPage();
   const assertNoPageErrors = watchPage(page);
-  await page.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE_URL}/fr/`, { waitUntil: 'domcontentloaded' });
   const form = await fillContact(page);
   await form.locator('button[type="submit"]').click();
   const status = form.locator('[data-form-status]');
@@ -253,7 +253,7 @@ async function checkNetworkError(browser) {
   });
   const page = await context.newPage();
   const assertNoPageErrors = watchPage(page);
-  await page.goto(`${BASE_URL}/nl/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE_URL}/en/`, { waitUntil: 'domcontentloaded' });
   const form = await fillNewsletter(page);
   await form.locator('button[type="submit"]').click();
   const status = form.locator('[data-form-status]');
@@ -301,10 +301,10 @@ async function checkSuccessAndDoubleClick(browser) {
   });
   const page = await context.newPage();
   const assertNoPageErrors = watchPage(page);
-  await page.goto(`${BASE_URL}/lb/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE_URL}/sv/`, { waitUntil: 'domcontentloaded' });
   const form = await fillNewsletter(page);
   await form.locator('button[type="submit"]').dblclick();
-  await page.waitForURL('**/lb/newsletter/thanks/');
+  await page.waitForURL('**/sv/newsletter/thanks/');
   assert(postCount === 1, `Double click issued ${postCount} newsletter POST requests`);
   assert(await page.locator('.confirmation-page').count() === 1, 'Newsletter success page did not render');
 

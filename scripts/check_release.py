@@ -6,6 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0,str(ROOT))
 from src.site_data import LANGS,ROUTES,TEXT
+from src.language_config import PUBLISHED_LANGUAGES
 from src.release_content import COPY
 from src.navigation import GROUPS
 from src.legacy_routes import LEGACY_ROUTES
@@ -21,7 +22,7 @@ def check(ok,msg):
  if not ok:errors.append(msg)
 for key,values in COPY.items():check(len(values)==6 and all(values),f'{key}: missing translation')
 check(len(ROUTES)==16,'Expected 16 public routes')
-for lang in LANGS:
+for lang in PUBLISHED_LANGUAGES:
  for route in ROUTES:
   path=ROOT/'dist'/lang/route/'index.html';body=path.read_text();p=Tree();p.feed(body)
   for link in p.links:
@@ -52,4 +53,4 @@ check('Max-Age=' not in js and 'localStorage' not in js,'Language preference mus
 red=(ROOT/'dist/_redirects').read_text()
 for old,new,status in LEGACY_ROUTES:check(f'{old} {new} {status}' in red,f'Missing redirect {old}')
 if errors:print('\n'.join(errors));raise SystemExit(1)
-print(f'PASS: publication content, navigation, anchors, media attribution, session cookie, and {len(LEGACY_ROUTES)} legacy mappings across {len(LANGS)*len(ROUTES)} pages.')
+print(f'PASS: publication content, navigation, anchors, media attribution, session cookie, and {len(LEGACY_ROUTES)} legacy mappings across {len(PUBLISHED_LANGUAGES)*len(ROUTES)} pages.')

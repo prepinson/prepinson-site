@@ -15,8 +15,9 @@ DIST = ROOT / "dist"
 sys.path.insert(0, str(ROOT))
 from src.form_data import FORM_COPY  # noqa: E402
 from src.site_data import LANGS, ROUTES  # noqa: E402
+from src.language_config import PUBLISHED_LANGUAGES  # noqa: E402
 
-DOMAIN = (os.environ.get("SITE_URL") or os.environ.get("URL") or "https://prepinson.netlify.app").rstrip("/")
+DOMAIN = (os.environ.get("SITE_URL") or os.environ.get("URL") or "https://www.prepinson.com").rstrip("/")
 ASSET_DOMAIN = os.environ.get("DEPLOY_PRIME_URL", DOMAIN).rstrip("/") if os.environ.get("PREVIEW_MODE") == "true" else DOMAIN
 errors = []
 
@@ -79,8 +80,8 @@ def fail(path, message):
     errors.append(f"{path}: {message}")
 
 
-expected = {DIST / lang / route / "index.html" if route else DIST / lang / "index.html" for lang in LANGS for route in ROUTES}
-utility = {DIST / lang / kind / "thanks" / "index.html" for lang in LANGS for kind in ("contact", "newsletter")}
+expected = {DIST / lang / route / "index.html" if route else DIST / lang / "index.html" for lang in PUBLISHED_LANGUAGES for route in ROUTES}
+utility = {DIST / lang / kind / "thanks" / "index.html" for lang in PUBLISHED_LANGUAGES for kind in ("contact", "newsletter")}
 all_expected = expected | utility
 actual = set(DIST.glob("*/**/index.html")) - {DIST / "index.html"}
 if actual != all_expected:
@@ -154,7 +155,7 @@ for path in sorted(expected):
     canonicals = [href for rels, _, href in links if rels == "canonical"]
     if canonicals != [canonical]:
         fail(rel, f"canonical mismatch {canonicals}")
-    expected_alts = {code: DOMAIN + f"/{code}/" + (route + "/" if route else "") for code in LANGS}
+    expected_alts = {code: DOMAIN + f"/{code}/" + (route + "/" if route else "") for code in PUBLISHED_LANGUAGES}
     expected_alts["x-default"] = DOMAIN + ("/" if not route else f"/en/{route}/")
     alts = {hreflang: href for rels, hreflang, href in links if rels == "alternate" and hreflang}
     if alts != expected_alts:
@@ -223,10 +224,10 @@ if "—" in gateway:
     fail("index.html", "language gateway contains an em dash")
 if 'name="robots" content="noindex' in gateway or f'<link rel="canonical" href="{DOMAIN}/">' not in gateway:
     fail("index.html", "root language gateway must be indexable with its own canonical")
-for phrase in ("Welcome to", "Bienvenue à", "Welkom bij", "Willkommen bei", "Välkommen till", "Wëllkomm zu"):
+for phrase in ("Welcome to", "Bienvenue à", "Välkommen till"):
     if phrase not in gateway:
         fail("index.html", f"missing greeting {phrase}")
-for lang in LANGS:
+for lang in PUBLISHED_LANGUAGES:
     if f'href="/{lang}/"' not in gateway:
         fail("index.html", f"missing gateway link for {lang}")
 
@@ -241,11 +242,11 @@ if "/* /404.html 404" not in (DIST / "_redirects").read_text(encoding="utf-8"):
 ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9", "x": "http://www.w3.org/1999/xhtml"}
 tree = ET.parse(DIST / "sitemap.xml")
 urls = tree.findall("s:url", ns)
-if len(urls) != len(LANGS) * len(ROUTES) + 1:
-    fail("sitemap.xml", f"expected {len(LANGS)*len(ROUTES)+1} URLs, got {len(urls)}")
+if len(urls) != len(PUBLISHED_LANGUAGES) * len(ROUTES) + 1:
+    fail("sitemap.xml", f"expected {len(PUBLISHED_LANGUAGES)*len(ROUTES)+1} URLs, got {len(urls)}")
 for node in urls:
     alternates = node.findall("x:link", ns)
-    if len(alternates) != len(LANGS) + 1:
+    if len(alternates) != len(PUBLISHED_LANGUAGES) + 1:
         fail("sitemap.xml", "URL without complete alternate set")
 
 robots = (DIST / "robots.txt").read_text(encoding="utf-8")
@@ -256,8 +257,8 @@ config = (ROOT / "netlify.toml").read_text(encoding="utf-8")
 for required in ("Content-Security-Policy", "X-Content-Type-Options", "Referrer-Policy", "Permissions-Policy"):
     if required not in config:
         fail("netlify.toml", f"missing {required}")
-if 'function = "language-redirect"' in config:
-    fail("netlify.toml", "language gateway is hidden by a root redirect")
+if 'function = "language-redirect"' not in config:
+    fail("netlify.toml", "automatic language selection is missing")
 
 public = "\n".join(p.read_text(encoding="utf-8", errors="ignore") for p in expected)
 for pattern in (r"€\s*\d", r"\b\d+[.,]?\d*\s*€", r"\bEUR\s*\d", r"\bUSD\s*\d"):
@@ -336,7 +337,7 @@ if "instagram.com/embed" in public or "lightwidget" in public.lower():
     fail("dist", "remote Instagram/LightWidget embed present")
 if "feedpane" in public.lower() or "feedpane.com" in (DIST / "app.js").read_text().lower():
     fail("dist", "obsolete FeedPane integration remains")
-for lang in LANGS:
+for lang in PUBLISHED_LANGUAGES:
     homepage = (DIST / lang / "index.html").read_text(encoding="utf-8")
     if ('id="instagram-feed"' not in homepage or 'data-instagram-retry' not in homepage
             or f'https://www.instagram.com/haras_de_prepinson/' not in homepage):

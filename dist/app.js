@@ -42,7 +42,7 @@
   }
 
   if (body.dataset.page === '404') {
-    const supported = ['en', 'fr', 'nl', 'de', 'sv', 'lb'];
+    const supported = ["fr", "en", "sv"];
     const browserLanguage = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
     const language = supported.find((code) => browserLanguage === code || browserLanguage.startsWith(`${code}-`)) || 'en';
     const copy = {
@@ -670,7 +670,7 @@
       feature.className = 'nav-feature';
       feature.href = destination.href;
       const photo = document.createElement('img');
-      photo.src = `/assets/nav-illustrations/${illustrations[index] || illustrations[0]}.webp?v=31fe386a7826`;
+      photo.src = `/assets/nav-illustrations/${illustrations[index] || illustrations[0]}.webp?v=b3b3aafffdf7`;
       photo.alt = '';
       photo.width = 960;
       photo.height = 640;

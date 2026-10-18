@@ -10,8 +10,8 @@ const captureLang=process.env.CAPTURE_LANG||'en';
 const output=process.env.AUDIT_OUTPUT||'outputs/v1-restoration';
 await mkdir(output,{recursive:true});
 const browser=await engine.launch({headless:true,...(engineName==='chromium'?{executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}:{})});
-const langs=['en','fr','nl','de','sv','lb'];
-const routes=['','horses','horses/programmes','horses/facilities','horses/for-sale','horses/references','houses','houses/ortho-24','houses/ortho-25','activities','legal','privacy','team','horses/boarding','contact'];
+const langs=['fr','en','sv'];
+const routes=['','horses','horses/programmes','horses/facilities','horses/for-sale','horses/references','houses','houses/ortho-24','houses/ortho-25','activities','legal','privacy','team','horses/boarding','contact','partners'];
 const widths=[360,390,761,768,1024,1280,1440,1920], errors=[],checks=[];
 const context=await browser.newContext({deviceScaleFactor:1});
 const page=await context.newPage();
@@ -27,7 +27,7 @@ for(const lang of (process.env.CAPTURE_ONLY ? [] : langs))for(const route of rou
   const result=await page.evaluate(()=>{
    const overflow=[...document.querySelectorAll('main *,header *,footer *,#contact *')].filter(el=>{
     const r=el.getBoundingClientRect(),s=getComputedStyle(el);
-    return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&(r.left < -1||r.right>innerWidth+1)&&!el.closest('[hidden],.form-trap,.sr-only,dialog:not([open]),.mobile-menu:not(.open)');
+    return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none'&&(r.left < -1||r.right>innerWidth+1)&&!el.closest('[hidden],.form-trap,.sr-only,dialog:not([open]),.mobile-menu:not(.open),.nav-group:not([open])');
    }).slice(0,10).map(el=>({tag:el.tagName,cls:el.className,text:el.textContent.trim().slice(0,60),rect:{x:el.getBoundingClientRect().x,w:el.getBoundingClientRect().width}}));
    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,overflow,bodyFont:getComputedStyle(document.body).fontFamily,h1Font:getComputedStyle(document.querySelector('h1')).fontFamily,images:[...document.images].filter(x=>x.getBoundingClientRect().top<innerHeight&&x.getBoundingClientRect().bottom>0&&!x.closest('dialog')).every(x=>x.complete&&x.naturalWidth>0)};
   });
@@ -53,7 +53,7 @@ for(const lang of (process.env.CAPTURE_ONLY ? [] : langs)){
  const keyboardOpen=await panels.evaluateAll(items=>items.filter(item=>item.open).map(item=>items.indexOf(item)));
  if(keyboardOpen.length!==1||keyboardOpen[0]!==3)errors.push({page:current,type:'accordion',message:`Keyboard opening did not remain exclusive: ${keyboardOpen}`});
 }
-for(const route of (process.env.SKIP_CAPTURES?[]:['','horses','horses/programmes','houses','houses/ortho-24','houses/ortho-25','team','horses/boarding','contact']))for(const width of [390,768,1440]){
+for(const route of (process.env.SKIP_CAPTURES?[]:['','horses','horses/programmes','houses','houses/ortho-24','houses/ortho-25','team','horses/boarding','contact','partners']))for(const width of [390,768,1440]){
  await page.setViewportSize({width,height:900});
  await page.goto(base+'/'+captureLang+'/'+(route?route+'/':''),{waitUntil:'load'});await page.evaluate(()=>document.fonts.ready);
  await page.evaluate(async()=>{for(const i of document.images){if(!i.closest('dialog'))i.loading='eager';} await Promise.all([...document.images].filter(i=>!i.closest('dialog')).map(i=>i.decode().catch(()=>{})));});

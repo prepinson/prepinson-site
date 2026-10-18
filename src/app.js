@@ -42,7 +42,7 @@
   }
 
   if (body.dataset.page === '404') {
-    const supported = ['en', 'fr', 'nl', 'de', 'sv', 'lb'];
+    const supported = __PUBLISHED_LANGUAGES__;
     const browserLanguage = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
     const language = supported.find((code) => browserLanguage === code || browserLanguage.startsWith(`${code}-`)) || 'en';
     const copy = {

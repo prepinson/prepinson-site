@@ -1,25 +1,32 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, access } from 'node:fs/promises';
+import redirect from '../netlify/edge-functions/language-redirect.js';
 
-const languages = [
-  ['en', 'Welcome to'],
-  ['fr', 'Bienvenue à'],
-  ['nl', 'Welkom bij'],
-  ['de', 'Willkommen bei'],
-  ['sv', 'Välkommen till'],
-  ['lb', 'Wëllkomm zu'],
-];
+const active = ['fr', 'en', 'sv'];
+const disabled = ['nl', 'de', 'lb'];
 const gateway = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
 const config = await readFile(new URL('../netlify.toml', import.meta.url), 'utf8');
-assert.doesNotMatch(config, /function\s*=\s*["']language-redirect["']/);
-assert.match(gateway, /<body class="gateway">/);
-assert.match(gateway, /<main>/);
-assert.match(gateway, /Welcome to Prepinson\./);
-for (const [lang, greeting] of languages) {
+const redirects = await readFile(new URL('../dist/_redirects', import.meta.url), 'utf8');
+assert.match(config, /function\s*=\s*"language-redirect"/);
+for (const lang of active) {
   assert.ok(gateway.includes(`href="/${lang}/"`), `${lang}: gateway link`);
-  assert.ok(gateway.includes(`lang="${lang}"`), `${lang}: animated phrase`);
-  assert.ok(gateway.includes(greeting), `${lang}: greeting`);
   const page = await readFile(new URL(`../dist/${lang}/index.html`, import.meta.url), 'utf8');
-  assert.ok(page.includes(`<html lang="${lang}">`), `${lang}: stable locale page`);
+  assert.ok(page.includes(`<html lang="${lang}">`), `${lang}: page`);
 }
-console.log('PASS: six-language root gateway and stable locale pages');
+for (const lang of disabled) {
+  assert.ok(!gateway.includes(`href="/${lang}/"`), `${lang}: hidden gateway link`);
+  await assert.rejects(access(new URL(`../dist/${lang}/index.html`, import.meta.url)));
+  assert.match(redirects, new RegExp(`/${lang}/ /en/ 302`));
+}
+const make = (headers = {}) => new Request('https://example.net/?ref=x', { headers });
+for (const [headers, destination] of [
+  [{ 'accept-language': 'sv-SE,fr;q=0.8' }, '/sv/?ref=x'],
+  [{ 'accept-language': 'de-DE,de;q=0.9' }, '/en/?ref=x'],
+  [{ cookie: 'prepinson-language=nl', 'accept-language': 'fr-FR' }, '/fr/?ref=x'],
+  [{ cookie: 'prepinson-language=sv', 'accept-language': 'fr-FR' }, '/sv/?ref=x'],
+]) {
+  const response = await redirect(make(headers), { next: () => { throw Error('unexpected next'); } });
+  assert.equal(response.status, 302);
+  assert.equal(new URL(response.headers.get('location')).pathname + new URL(response.headers.get('location')).search, destination);
+}
+console.log('PASS: active languages, disabled routes, and root language selection');

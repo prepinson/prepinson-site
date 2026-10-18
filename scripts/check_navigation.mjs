@@ -12,7 +12,7 @@ const checks=[],errors=[];
 let activePage;
 function assert(ok,message){if(!ok)throw Error(message);checks.push(message);}
 try {
- for(const lang of ['en','fr','nl','de','sv','lb']) {
+ for(const lang of ['fr','en','sv']) {
   const context=await browser.newContext({viewport:{width:360,height:480},reducedMotion:'reduce'}),page=await context.newPage();
   activePage=page;
   const external=[];page.on('request',req=>{if(!req.url().startsWith(base)&&!req.url().startsWith('data:')&&!req.url().startsWith('blob:'+base+'/'))external.push(req.url());});
@@ -125,7 +125,7 @@ try {
  if(process.env.AXE_MODULE) {
   const axe=await readFile(process.env.AXE_MODULE,'utf8');
   const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'}),page=await context.newPage();
-  for(const lang of ['en','fr','nl','de','sv','lb'])for(const route of ['','horses/','horses/programmes/','horses/facilities/','horses/for-sale/','horses/references/','houses/','houses/ortho-24/','houses/ortho-25/','activities/','legal/','privacy/','team/','horses/boarding/','contact/']) {
+  for(const lang of ['fr','en','sv'])for(const route of ['','horses/','horses/programmes/','horses/facilities/','horses/for-sale/','horses/references/','houses/','houses/ortho-24/','houses/ortho-25/','activities/','legal/','privacy/','team/','horses/boarding/','contact/']) {
    await page.goto(`${base}/${lang}/${route}`);await page.evaluate(axe);
    const violations=await page.evaluate(async()=> (await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa','best-practice']}})).violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>n.target)})));
    if(violations.length)errors.push({page:`/${lang}/${route}`,violations});
