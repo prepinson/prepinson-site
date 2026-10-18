@@ -670,7 +670,7 @@
       feature.className = 'nav-feature';
       feature.href = destination.href;
       const photo = document.createElement('img');
-      photo.src = `/assets/nav-illustrations/${illustrations[index] || illustrations[0]}.webp?v=b3b3aafffdf7`;
+      photo.src = `/assets/nav-illustrations/${illustrations[index] || illustrations[0]}.webp?v=737742d9cbba`;
       photo.alt = '';
       photo.width = 960;
       photo.height = 640;

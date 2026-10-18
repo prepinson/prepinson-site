@@ -488,7 +488,7 @@ def build():
     for lang in LANGS:
         if lang not in PUBLISHED_LANGUAGES and (OUT / lang).exists():
             shutil.rmtree(OUT / lang)
-    edge_template = (ROOT / "netlify/edge-functions/language-redirect.template.js").read_text(encoding="utf-8")
+    edge_template = (ROOT / "src/language-redirect.template.js").read_text(encoding="utf-8")
     (ROOT / "netlify/edge-functions/language-redirect.js").write_text(edge_template.replace("__PUBLISHED_LANGUAGES__", json.dumps(PUBLISHED_LANGUAGES)).replace("__FALLBACK_LANGUAGE__", FALLBACK_LANGUAGE), encoding="utf-8")
     (OUT / "index.html").write_text(gateway(), encoding="utf-8")
     (OUT / "404.html").write_text(not_found(), encoding="utf-8")
