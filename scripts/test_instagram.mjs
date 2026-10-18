@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { syncInstagram } from '../netlify/lib/instagram.mjs';
-import { serveFeed } from '../netlify/functions/instagram-feed.mjs';
+import { initializeMissingFeed, serveFeed } from '../netlify/functions/instagram-feed.mjs';
 import { serveImage } from '../netlify/functions/instagram-image.mjs';
 import { serveHealth } from '../netlify/functions/instagram-health.mjs';
 import { initializeInstagram } from '../netlify/functions/instagram-on-deploy.mjs';
@@ -68,6 +68,30 @@ function setup() {
 
 const six = ['10000001', '10000002', '10000003', '10000004', '10000005', '10000006'];
 const day = 86400000;
+
+test('missing-feed bootstrap allows one background sync and backs off after failure', async () => {
+  const store = new MemoryStore();
+  const tokenStore = new MemoryStore();
+  let calls = 0;
+  const sync = async () => { calls++; throw new Error('temporary API failure'); };
+  await Promise.all([
+    initializeMissingFeed(store, tokenStore, sync, 1000),
+    initializeMissingFeed(store, tokenStore, sync, 1000),
+  ]);
+  assert.equal(calls, 1);
+  assert.equal(await store.get('feed', { type: 'json' }), null);
+  await initializeMissingFeed(store, tokenStore, sync, 2000);
+  assert.equal(calls, 1);
+});
+
+test('missing-feed bootstrap publishes a complete feed after a manual deploy', async () => {
+  const deps = setup();
+  const fixtureResult = fixture(six);
+  await initializeMissingFeed(deps.store, deps.tokenStore,
+    (stores) => syncInstagram({ ...deps, ...fixtureResult, ...stores, now: day }), 1000);
+  assert.equal((await deps.store.get('feed', { type: 'json' })).posts.length, 6);
+  assert.equal(fixtureResult.calls.images, 6);
+});
 
 test('publishes six posts, reuses unchanged images, and retains a removed image for seven days', async () => {
   const deps = setup();
